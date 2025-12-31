@@ -1,0 +1,10 @@
+# Copy this file to .dev.vars and fill in your values
+
+# Generate a random 32+ character string for this
+BETTER_AUTH_SECRET=your-secret-here
+
+# Google OAuth credentials
+# Create at: https://console.cloud.google.com/apis/credentials
+# Set callback URL to: http://localhost:5173/api/auth/callback/google
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
