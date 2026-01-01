@@ -2,61 +2,62 @@ import { createFileRoute, useLoaderData } from "@tanstack/react-router";
 import { GoalProgress } from "../../components/goal-progress";
 import { getYearlyGoals, getMediaForYear } from "../../server/queries";
 
-export const Route = createFileRoute("/_authenticated/year/$year/$type")({
+export const Route = createFileRoute("/_authenticated/year/$year/")({
   loader: async ({ params }) => {
     const year = parseInt(params.year);
-    const mediaType = params.type === "movies" ? "movie" : "book";
-
     const [goals, media] = await Promise.all([
       getYearlyGoals({ data: { year } }),
-      getMediaForYear({ data: { year, type: mediaType } }),
+      getMediaForYear({ data: { year } }),
     ]);
 
-    const goal = goals.find((g) => g.type === mediaType);
+    const movieGoal = goals.find((g) => g.type === "movie");
+    const bookGoal = goals.find((g) => g.type === "book");
+    const movieCount = media.filter((m) => m.mediaItem.type === "movie").length;
+    const bookCount = media.filter((m) => m.mediaItem.type === "book").length;
 
     return {
-      goal: { current: media.length, target: goal?.target ?? (mediaType === "movie" ? 52 : 24) },
+      movies: { current: movieCount, target: movieGoal?.target ?? 52 },
+      books: { current: bookCount, target: bookGoal?.target ?? 24 },
       items: media.map((m) => ({
         id: m.id,
         title: m.mediaItem.title,
+        type: m.mediaItem.type as "movie" | "book",
         consumedAt: m.consumedAt,
         rating: m.rating ?? undefined,
       })),
     };
   },
-  component: YearTypePage,
+  component: YearIndexPage,
 });
 
 interface MediaItem {
   id: string;
   title: string;
+  type: "movie" | "book";
   consumedAt: Date;
   rating?: number;
 }
 
-function YearTypePage() {
-  const { type } = Route.useParams();
-  const { goal, items } = useLoaderData({ from: "/_authenticated/year/$year/$type" });
-
-  const mediaType = type === "movies" ? "movie" : "book";
-  const label = type === "movies" ? "Movies" : "Books";
+function YearIndexPage() {
+  const { movies, books, items } = useLoaderData({ from: "/_authenticated/year/$year/" });
 
   return (
     <>
-      <div className="mb-8">
-        <GoalProgress type={mediaType} {...goal} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <GoalProgress type="movie" {...movies} />
+        <GoalProgress type="book" {...books} />
       </div>
 
       <div className="bg-card rounded-lg border p-4">
-        <MediaList items={items} label={label} />
+        <MediaList items={items} />
       </div>
     </>
   );
 }
 
-function MediaList({ items, label }: { items: MediaItem[]; label: string }) {
+function MediaList({ items }: { items: MediaItem[] }) {
   if (items.length === 0) {
-    return <p className="text-muted-foreground">No {label.toLowerCase()} logged for this year yet.</p>;
+    return <p className="text-muted-foreground">No media logged for this year yet.</p>;
   }
 
   return (
@@ -71,6 +72,9 @@ function MediaList({ items, label }: { items: MediaItem[]; label: string }) {
               day: "numeric",
             })}
           </span>
+          {item.rating && (
+            <span className="text-sm">{"*".repeat(item.rating)}</span>
+          )}
         </li>
       ))}
     </ul>

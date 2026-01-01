@@ -6,8 +6,8 @@ import { createDb, schema } from "../db";
 import { eq, and, desc } from "drizzle-orm";
 import { createAuth } from "../lib/auth";
 
-const getShareTypeData = createServerFn({ method: "GET" })
-  .inputValidator((data: { year: number; type: "movie" | "book" }) => data)
+const getShareData = createServerFn({ method: "GET" })
+  .inputValidator((data: { year: number }) => data)
   .handler(async ({ data }) => {
     const request = getRequest();
     const cfEnv = env as CloudflareEnv & {
@@ -35,32 +35,34 @@ const getShareTypeData = createServerFn({ method: "GET" })
       orderBy: desc(schema.mediaLog.consumedAt),
     });
 
-    const filtered = logs.filter((m) => m.mediaItem.type === data.type);
+    const movies = logs.filter((m) => m.mediaItem.type === "movie");
+    const books = logs.filter((m) => m.mediaItem.type === "book");
 
     return {
       userName: session.user.name,
-      items: filtered.map((m) => ({
+      movieCount: movies.length,
+      bookCount: books.length,
+      items: logs.map((m) => ({
         id: m.id,
         title: m.mediaItem.title,
+        type: m.mediaItem.type as "movie" | "book",
         consumedAt: m.consumedAt,
         releaseYear: m.mediaItem.releaseYear,
       })),
     };
   });
 
-export const Route = createFileRoute("/share/$year/$type")({
+export const Route = createFileRoute("/share/$year/")({
   loader: async ({ params }) => {
     const year = parseInt(params.year);
-    const mediaType = params.type === "movies" ? "movie" : "book";
-    return getShareTypeData({ data: { year, type: mediaType } });
+    return getShareData({ data: { year } });
   },
-  component: ShareTypePage,
+  component: ShareIndexPage,
 });
 
-function ShareTypePage() {
-  const { year, type } = Route.useParams();
-  const data = useLoaderData({ from: "/share/$year/$type" });
-  const label = type === "movies" ? "Movies" : "Books";
+function ShareIndexPage() {
+  const { year } = Route.useParams();
+  const data = useLoaderData({ from: "/share/$year/" });
 
   if (!data) {
     return (
@@ -68,22 +70,27 @@ function ShareTypePage() {
     );
   }
 
-  const { userName, items } = data;
+  const { userName, movieCount, bookCount, items } = data;
+
+  const allMedia = [...items].sort(
+    (a, b) =>
+      new Date(a.consumedAt).getTime() - new Date(b.consumedAt).getTime()
+  );
 
   return (
     <>
       <h1 className="text-xl font-bold mb-1">
-        {userName}'s {year} {label}
+        {userName}'s {year}
       </h1>
       <p className="text-muted-foreground text-sm mb-6">
-        {items.length} {label.toLowerCase()}
+        {movieCount} movies & {bookCount} books
       </p>
 
-      {items.length === 0 ? (
+      {allMedia.length === 0 ? (
         <p className="text-muted-foreground">Nothing logged yet.</p>
       ) : (
         <ol className="space-y-1 text-sm">
-          {items.map((item, index) => (
+          {allMedia.map((item, index) => (
             <li key={item.id} className="flex gap-2">
               <span className="text-muted-foreground w-6">{index + 1}.</span>
               <span className="flex-1">
