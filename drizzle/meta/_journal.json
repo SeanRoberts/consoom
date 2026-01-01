@@ -8,6 +8,13 @@
       "when": 1767203063344,
       "tag": "0000_tense_genesis",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1767216728510,
+      "tag": "0001_gray_silverclaw",
+      "breakpoints": true
     }
   ]
 }

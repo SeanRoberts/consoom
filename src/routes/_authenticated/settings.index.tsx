@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSession, signOut } from "../../lib/auth-client";
+import { createFileRoute, Link, useLoaderData } from "@tanstack/react-router";
+import { signOut } from "../../lib/auth-client";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -11,29 +11,36 @@ import {
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useState } from "react";
+import { linkAccount, saveYearlyGoal } from "../../server/mutations";
+import { getLinkedAccounts, getYearlyGoals } from "../../server/queries";
 
-export const Route = createFileRoute("/settings/")({
+const currentYear = new Date().getFullYear();
+
+export const Route = createFileRoute("/_authenticated/settings/")({
+  loader: async () => {
+    const [accounts, goals] = await Promise.all([
+      getLinkedAccounts(),
+      getYearlyGoals({ data: { year: currentYear } }),
+    ]);
+    return { accounts, goals };
+  },
   component: SettingsPage,
 });
 
 function SettingsPage() {
-  const { data: session } = useSession();
-  const currentYear = new Date().getFullYear();
+  const { session } = Route.useRouteContext();
+  const { accounts, goals } = useLoaderData({ from: "/_authenticated/settings/" });
 
-  const [letterboxdUsername, setLetterboxdUsername] = useState("");
-  const [goodreadsUserId, setGoodreadsUserId] = useState("");
-  const [movieGoal, setMovieGoal] = useState("52");
-  const [bookGoal, setBookGoal] = useState("24");
+  const letterboxdAccount = accounts.find((a) => a.type === "letterboxd");
+  const goodreadsAccount = accounts.find((a) => a.type === "goodreads");
+  const movieGoalData = goals.find((g) => g.type === "movie");
+  const bookGoalData = goals.find((g) => g.type === "book");
 
-  if (!session) {
-    return (
-      <div className="p-8">
-        <Link to="/login">
-          <Button>Log in</Button>
-        </Link>
-      </div>
-    );
-  }
+  const [letterboxdUsername, setLetterboxdUsername] = useState(letterboxdAccount?.username ?? "");
+  const [goodreadsUserId, setGoodreadsUserId] = useState(goodreadsAccount?.username ?? "");
+  const [movieGoal, setMovieGoal] = useState(movieGoalData?.target?.toString() ?? "52");
+  const [bookGoal, setBookGoal] = useState(bookGoalData?.target?.toString() ?? "24");
+  const [saving, setSaving] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -41,26 +48,47 @@ function SettingsPage() {
   };
 
   const handleLinkLetterboxd = async () => {
-    // TODO: Save to database via server function
-    console.log("Linking Letterboxd:", letterboxdUsername);
-    alert("Letterboxd account linked! (Demo - not saved yet)");
+    if (!letterboxdUsername.trim()) return;
+    setSaving(true);
+    try {
+      await linkAccount({ data: { type: "letterboxd", username: letterboxdUsername } });
+      alert("Letterboxd account linked!");
+    } catch (error) {
+      alert("Failed to link account: " + (error as Error).message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLinkGoodreads = async () => {
-    // TODO: Save to database via server function
-    console.log("Linking Goodreads:", goodreadsUserId);
-    alert("Goodreads account linked! (Demo - not saved yet)");
+    if (!goodreadsUserId.trim()) return;
+    setSaving(true);
+    try {
+      await linkAccount({ data: { type: "goodreads", username: goodreadsUserId } });
+      alert("Goodreads account linked!");
+    } catch (error) {
+      alert("Failed to link account: " + (error as Error).message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveGoals = async () => {
-    // TODO: Save to database via server function
-    console.log("Saving goals:", { movies: movieGoal, books: bookGoal });
-    alert("Goals saved! (Demo - not saved yet)");
+    setSaving(true);
+    try {
+      await saveYearlyGoal({ data: { year: currentYear, type: "movie", target: parseInt(movieGoal) } });
+      await saveYearlyGoal({ data: { year: currentYear, type: "book", target: parseInt(bookGoal) } });
+      alert("Goals saved!");
+    } catch (error) {
+      alert("Failed to save goals: " + (error as Error).message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b">
         <div className="max-w-2xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Link to="/dashboard">
@@ -80,7 +108,7 @@ function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-gray-500">Signed in as</p>
+              <p className="text-sm text-muted-foreground">Signed in as</p>
               <p className="font-medium">{session.user.email}</p>
             </div>
             <Button variant="outline" onClick={handleSignOut}>
@@ -106,9 +134,11 @@ function SettingsPage() {
                   value={letterboxdUsername}
                   onChange={(e) => setLetterboxdUsername(e.target.value)}
                 />
-                <Button onClick={handleLinkLetterboxd}>Link</Button>
+                <Button onClick={handleLinkLetterboxd} disabled={saving}>
+                  {saving ? "Saving..." : "Link"}
+                </Button>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Find your username at letterboxd.com/your-username
               </p>
             </div>
@@ -122,9 +152,11 @@ function SettingsPage() {
                   value={goodreadsUserId}
                   onChange={(e) => setGoodreadsUserId(e.target.value)}
                 />
-                <Button onClick={handleLinkGoodreads}>Link</Button>
+                <Button onClick={handleLinkGoodreads} disabled={saving}>
+                  {saving ? "Saving..." : "Link"}
+                </Button>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Find your ID in your Goodreads profile URL:
                 goodreads.com/user/show/12345678
               </p>
@@ -158,7 +190,9 @@ function SettingsPage() {
                 />
               </div>
             </div>
-            <Button onClick={handleSaveGoals}>Save Goals</Button>
+            <Button onClick={handleSaveGoals} disabled={saving}>
+              {saving ? "Saving..." : "Save Goals"}
+            </Button>
           </CardContent>
         </Card>
 

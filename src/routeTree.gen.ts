@@ -10,23 +10,26 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as SettingsImportRouteImport } from './routes/settings/import'
-import { Route as YearYearIndexRouteImport } from './routes/year/$year/index'
-import { Route as ShareYearIndexRouteImport } from './routes/share/$year/index'
-import { Route as YearYearTypeRouteImport } from './routes/year/$year/$type'
-import { Route as ShareYearTypeRouteImport } from './routes/share/$year/$type'
+import { Route as ShareYearRouteImport } from './routes/share.$year'
+import { Route as ApiCronRouteImport } from './routes/api/cron'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as ShareYearTypeRouteImport } from './routes/share.$year.$type'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthenticatedYearYearRouteImport } from './routes/_authenticated/year.$year'
+import { Route as AuthenticatedSettingsImportRouteImport } from './routes/_authenticated/settings.import'
+import { Route as AuthenticatedYearYearTypeRouteImport } from './routes/_authenticated/year.$year.$type'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -34,117 +37,155 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
+const ShareYearRoute = ShareYearRouteImport.update({
+  id: '/share/$year',
+  path: '/share/$year',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsImportRoute = SettingsImportRouteImport.update({
-  id: '/settings/import',
-  path: '/settings/import',
+const ApiCronRoute = ApiCronRouteImport.update({
+  id: '/api/cron',
+  path: '/api/cron',
   getParentRoute: () => rootRouteImport,
 } as any)
-const YearYearIndexRoute = YearYearIndexRouteImport.update({
-  id: '/year/$year/',
-  path: '/year/$year/',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const ShareYearIndexRoute = ShareYearIndexRouteImport.update({
-  id: '/share/$year/',
-  path: '/share/$year/',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const YearYearTypeRoute = YearYearTypeRouteImport.update({
-  id: '/year/$year/$type',
-  path: '/year/$year/$type',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const ShareYearTypeRoute = ShareYearTypeRouteImport.update({
-  id: '/share/$year/$type',
-  path: '/share/$year/$type',
+  id: '/$type',
+  path: '/$type',
+  getParentRoute: () => ShareYearRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedYearYearRoute = AuthenticatedYearYearRouteImport.update({
+  id: '/year/$year',
+  path: '/year/$year',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSettingsImportRoute =
+  AuthenticatedSettingsImportRouteImport.update({
+    id: '/import',
+    path: '/import',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedYearYearTypeRoute =
+  AuthenticatedYearYearTypeRouteImport.update({
+    id: '/$type',
+    path: '/$type',
+    getParentRoute: () => AuthenticatedYearYearRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/settings/import': typeof SettingsImportRoute
-  '/settings': typeof SettingsIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/settings': typeof AuthenticatedSettingsRouteWithChildren
+  '/api/cron': typeof ApiCronRoute
+  '/share/$year': typeof ShareYearRouteWithChildren
+  '/settings/import': typeof AuthenticatedSettingsImportRoute
+  '/year/$year': typeof AuthenticatedYearYearRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/share/$year/$type': typeof ShareYearTypeRoute
-  '/year/$year/$type': typeof YearYearTypeRoute
-  '/share/$year': typeof ShareYearIndexRoute
-  '/year/$year': typeof YearYearIndexRoute
+  '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/year/$year/$type': typeof AuthenticatedYearYearTypeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/settings/import': typeof SettingsImportRoute
-  '/settings': typeof SettingsIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/cron': typeof ApiCronRoute
+  '/share/$year': typeof ShareYearRouteWithChildren
+  '/settings/import': typeof AuthenticatedSettingsImportRoute
+  '/year/$year': typeof AuthenticatedYearYearRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/share/$year/$type': typeof ShareYearTypeRoute
-  '/year/$year/$type': typeof YearYearTypeRoute
-  '/share/$year': typeof ShareYearIndexRoute
-  '/year/$year': typeof YearYearIndexRoute
+  '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/year/$year/$type': typeof AuthenticatedYearYearTypeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
-  '/settings/import': typeof SettingsImportRoute
-  '/settings/': typeof SettingsIndexRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
+  '/api/cron': typeof ApiCronRoute
+  '/share/$year': typeof ShareYearRouteWithChildren
+  '/_authenticated/settings/import': typeof AuthenticatedSettingsImportRoute
+  '/_authenticated/year/$year': typeof AuthenticatedYearYearRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/share/$year/$type': typeof ShareYearTypeRoute
-  '/year/$year/$type': typeof YearYearTypeRoute
-  '/share/$year/': typeof ShareYearIndexRoute
-  '/year/$year/': typeof YearYearIndexRoute
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/year/$year/$type': typeof AuthenticatedYearYearTypeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard'
     | '/login'
-    | '/settings/import'
+    | '/dashboard'
     | '/settings'
-    | '/share/$year/$type'
-    | '/year/$year/$type'
+    | '/api/cron'
     | '/share/$year'
+    | '/settings/import'
     | '/year/$year'
+    | '/api/auth/$'
+    | '/share/$year/$type'
+    | '/settings/'
+    | '/year/$year/$type'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
     | '/login'
-    | '/settings/import'
-    | '/settings'
-    | '/share/$year/$type'
-    | '/year/$year/$type'
+    | '/dashboard'
+    | '/api/cron'
     | '/share/$year'
+    | '/settings/import'
     | '/year/$year'
+    | '/api/auth/$'
+    | '/share/$year/$type'
+    | '/settings'
+    | '/year/$year/$type'
   id:
     | '__root__'
     | '/'
-    | '/dashboard'
+    | '/_authenticated'
     | '/login'
-    | '/settings/import'
-    | '/settings/'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/settings'
+    | '/api/cron'
+    | '/share/$year'
+    | '/_authenticated/settings/import'
+    | '/_authenticated/year/$year'
+    | '/api/auth/$'
     | '/share/$year/$type'
-    | '/year/$year/$type'
-    | '/share/$year/'
-    | '/year/$year/'
+    | '/_authenticated/settings/'
+    | '/_authenticated/year/$year/$type'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
-  SettingsImportRoute: typeof SettingsImportRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
-  ShareYearTypeRoute: typeof ShareYearTypeRoute
-  YearYearTypeRoute: typeof YearYearTypeRoute
-  ShareYearIndexRoute: typeof ShareYearIndexRoute
-  YearYearIndexRoute: typeof YearYearIndexRoute
+  ApiCronRoute: typeof ApiCronRoute
+  ShareYearRoute: typeof ShareYearRouteWithChildren
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -156,11 +197,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -170,61 +211,142 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/': {
-      id: '/settings/'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/import': {
-      id: '/settings/import'
-      path: '/settings/import'
-      fullPath: '/settings/import'
-      preLoaderRoute: typeof SettingsImportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/year/$year/': {
-      id: '/year/$year/'
-      path: '/year/$year'
-      fullPath: '/year/$year'
-      preLoaderRoute: typeof YearYearIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/share/$year/': {
-      id: '/share/$year/'
+    '/share/$year': {
+      id: '/share/$year'
       path: '/share/$year'
       fullPath: '/share/$year'
-      preLoaderRoute: typeof ShareYearIndexRouteImport
+      preLoaderRoute: typeof ShareYearRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/year/$year/$type': {
-      id: '/year/$year/$type'
-      path: '/year/$year/$type'
-      fullPath: '/year/$year/$type'
-      preLoaderRoute: typeof YearYearTypeRouteImport
+    '/api/cron': {
+      id: '/api/cron'
+      path: '/api/cron'
+      fullPath: '/api/cron'
+      preLoaderRoute: typeof ApiCronRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
     }
     '/share/$year/$type': {
       id: '/share/$year/$type'
-      path: '/share/$year/$type'
+      path: '/$type'
       fullPath: '/share/$year/$type'
       preLoaderRoute: typeof ShareYearTypeRouteImport
+      parentRoute: typeof ShareYearRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/year/$year': {
+      id: '/_authenticated/year/$year'
+      path: '/year/$year'
+      fullPath: '/year/$year'
+      preLoaderRoute: typeof AuthenticatedYearYearRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings/import': {
+      id: '/_authenticated/settings/import'
+      path: '/import'
+      fullPath: '/settings/import'
+      preLoaderRoute: typeof AuthenticatedSettingsImportRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/year/$year/$type': {
+      id: '/_authenticated/year/$year/$type'
+      path: '/$type'
+      fullPath: '/year/$year/$type'
+      preLoaderRoute: typeof AuthenticatedYearYearTypeRouteImport
+      parentRoute: typeof AuthenticatedYearYearRoute
     }
   }
 }
 
+interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsImportRoute: typeof AuthenticatedSettingsImportRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+}
+
+const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsImportRoute: AuthenticatedSettingsImportRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+}
+
+const AuthenticatedSettingsRouteWithChildren =
+  AuthenticatedSettingsRoute._addFileChildren(
+    AuthenticatedSettingsRouteChildren,
+  )
+
+interface AuthenticatedYearYearRouteChildren {
+  AuthenticatedYearYearTypeRoute: typeof AuthenticatedYearYearTypeRoute
+}
+
+const AuthenticatedYearYearRouteChildren: AuthenticatedYearYearRouteChildren = {
+  AuthenticatedYearYearTypeRoute: AuthenticatedYearYearTypeRoute,
+}
+
+const AuthenticatedYearYearRouteWithChildren =
+  AuthenticatedYearYearRoute._addFileChildren(
+    AuthenticatedYearYearRouteChildren,
+  )
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
+  AuthenticatedYearYearRoute: typeof AuthenticatedYearYearRouteWithChildren
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
+  AuthenticatedYearYearRoute: AuthenticatedYearYearRouteWithChildren,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+interface ShareYearRouteChildren {
+  ShareYearTypeRoute: typeof ShareYearTypeRoute
+}
+
+const ShareYearRouteChildren: ShareYearRouteChildren = {
+  ShareYearTypeRoute: ShareYearTypeRoute,
+}
+
+const ShareYearRouteWithChildren = ShareYearRoute._addFileChildren(
+  ShareYearRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
-  SettingsImportRoute: SettingsImportRoute,
-  SettingsIndexRoute: SettingsIndexRoute,
-  ShareYearTypeRoute: ShareYearTypeRoute,
-  YearYearTypeRoute: YearYearTypeRoute,
-  ShareYearIndexRoute: ShareYearIndexRoute,
-  YearYearIndexRoute: YearYearIndexRoute,
+  ApiCronRoute: ApiCronRoute,
+  ShareYearRoute: ShareYearRouteWithChildren,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

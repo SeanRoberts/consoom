@@ -1,21 +1,35 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getEvent } from "vinxi/http";
+import { getRequest } from "@tanstack/react-start/server";
+import { env } from "cloudflare:workers";
 import { createDb, schema } from "../db";
+import { createAuth } from "../lib/auth";
+
+async function getSessionUserId() {
+  const request = getRequest();
+  const cfEnv = env as CloudflareEnv & {
+    BETTER_AUTH_SECRET: string;
+    GOOGLE_CLIENT_ID: string;
+    GOOGLE_CLIENT_SECRET: string;
+  };
+  const auth = createAuth(cfEnv);
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session?.user?.id) {
+    throw new Error("Not authenticated");
+  }
+  return session.user.id;
+}
 
 export const linkAccount = createServerFn({ method: "POST" })
-  .validator(
+  .inputValidator(
     (data: { type: "letterboxd" | "goodreads"; username: string }) => data
   )
   .handler(async ({ data }) => {
-    const event = getEvent();
-    const env = event.context.cf?.env;
-    if (!env?.DB) {
+    const cfEnv = env as CloudflareEnv;
+    if (!cfEnv?.DB) {
       throw new Error("Database not available");
     }
-    const db = createDb(env.DB);
-
-    // TODO: Get user ID from session
-    const userId = "";
+    const db = createDb(cfEnv.DB);
+    const userId = await getSessionUserId();
 
     const rssUrl =
       data.type === "letterboxd"
@@ -42,19 +56,16 @@ export const linkAccount = createServerFn({ method: "POST" })
   });
 
 export const saveYearlyGoal = createServerFn({ method: "POST" })
-  .validator(
+  .inputValidator(
     (data: { year: number; type: "movie" | "book"; target: number }) => data
   )
   .handler(async ({ data }) => {
-    const event = getEvent();
-    const env = event.context.cf?.env;
-    if (!env?.DB) {
+    const cfEnv = env as CloudflareEnv;
+    if (!cfEnv?.DB) {
       throw new Error("Database not available");
     }
-    const db = createDb(env.DB);
-
-    // TODO: Get user ID from session
-    const userId = "";
+    const db = createDb(cfEnv.DB);
+    const userId = await getSessionUserId();
 
     await db
       .insert(schema.yearlyGoals)
@@ -76,4 +87,70 @@ export const saveYearlyGoal = createServerFn({ method: "POST" })
       });
 
     return { success: true };
+  });
+
+interface ImportItem {
+  title: string;
+  externalId: string;
+  consumedAt: string;
+  rating?: number;
+}
+
+export const importMedia = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: { type: "letterboxd" | "goodreads"; items: ImportItem[] }) => data
+  )
+  .handler(async ({ data }) => {
+    const cfEnv = env as CloudflareEnv;
+    if (!cfEnv?.DB) {
+      throw new Error("Database not available");
+    }
+    const db = createDb(cfEnv.DB);
+    const userId = await getSessionUserId();
+
+    const mediaType = data.type === "letterboxd" ? "movie" : "book";
+    let imported = 0;
+
+    for (const item of data.items) {
+      const consumedAt = new Date(item.consumedAt);
+      const yearConsumed = consumedAt.getFullYear();
+
+      // Upsert media item
+      await db
+        .insert(schema.mediaItems)
+        .values({
+          type: mediaType,
+          externalId: item.externalId,
+          source: data.type,
+          title: item.title,
+        })
+        .onConflictDoNothing();
+
+      // Get the media item
+      const mediaItem = await db.query.mediaItems.findFirst({
+        where: (fields, { and, eq }) =>
+          and(
+            eq(fields.source, data.type),
+            eq(fields.externalId, item.externalId)
+          ),
+      });
+
+      if (!mediaItem) continue;
+
+      // Upsert media log
+      await db
+        .insert(schema.mediaLog)
+        .values({
+          userId,
+          mediaItemId: mediaItem.id,
+          consumedAt,
+          yearConsumed,
+          rating: item.rating,
+        })
+        .onConflictDoNothing();
+
+      imported++;
+    }
+
+    return { success: true, imported };
   });
