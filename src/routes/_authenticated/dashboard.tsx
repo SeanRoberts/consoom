@@ -1,9 +1,18 @@
 import { createFileRoute, Link, useLoaderData } from "@tanstack/react-router";
 import { GoalProgress } from "../../components/goal-progress";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { ThemeToggle } from "../../components/ui/theme-toggle";
-import { getYearlyGoals, getMediaForYear, getRecentMedia } from "../../server/queries";
+import {
+  getYearlyGoals,
+  getMediaForYear,
+  getRecentMedia,
+} from "../../server/queries";
 
 const currentYear = new Date().getFullYear();
 
@@ -17,8 +26,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
     const movieGoal = goals.find((g) => g.type === "movie");
     const bookGoal = goals.find((g) => g.type === "book");
-    const movieCount = mediaThisYear.filter((m) => m.mediaItem.type === "movie").length;
-    const bookCount = mediaThisYear.filter((m) => m.mediaItem.type === "book").length;
+    const movieCount = mediaThisYear.filter(
+      (m) => m.mediaItem.type === "movie"
+    ).length;
+    const bookCount = mediaThisYear.filter(
+      (m) => m.mediaItem.type === "book"
+    ).length;
 
     return {
       movies: { current: movieCount, target: movieGoal?.target ?? 52 },
@@ -35,15 +48,19 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const { session } = Route.useRouteContext();
-  const { movies, books, recentMedia } = useLoaderData({ from: "/_authenticated/dashboard" });
+  const { movies, books, recentMedia } = useLoaderData({
+    from: "/_authenticated/dashboard",
+  });
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-card border-b">
+    <div className="min-h-screen bg-gradient">
+      <header className="bg-card/80 backdrop-blur-sm border-b border-primary/10 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">Consoom</h1>
+          <h1 className="text-xl font-bold text-gradient">Consoom</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{session.user.name}</span>
+            <span className="text-sm text-muted-foreground">
+              {session.user.name}
+            </span>
             <ThemeToggle />
             <Link to="/settings">
               <Button variant="outline" size="sm">
@@ -55,7 +72,9 @@ function DashboardPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold mb-6">{currentYear} Progress</h2>
+        <h2 className="text-2xl font-bold mb-6">
+          <span className="text-gradient">{currentYear}</span> Progress
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <GoalProgress type="movie" {...movies} />

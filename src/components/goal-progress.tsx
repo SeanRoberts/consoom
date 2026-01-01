@@ -10,20 +10,22 @@ interface GoalProgressProps {
 export function GoalProgress({ type, current, target }: GoalProgressProps) {
   const percentage = target > 0 ? Math.min((current / target) * 100, 100) : 0;
   const label = type === "movie" ? "Movies" : "Books";
+  const emoji = type === "movie" ? "🎬" : "📚";
 
   return (
-    <Card>
+    <Card className="card-glow">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
-          <span>{label}</span>
+          <span className="text-xl">{emoji}</span>
+          <span className="text-gradient font-bold">{label}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-between text-sm mb-2">
-          <span>
+        <div className="flex justify-between text-sm mb-3">
+          <span className="font-medium">
             {current} / {target}
           </span>
-          <span>{Math.round(percentage)}%</span>
+          <span className="text-gradient font-bold">{Math.round(percentage)}%</span>
         </div>
         <Progress value={percentage} className="h-3" />
       </CardContent>
