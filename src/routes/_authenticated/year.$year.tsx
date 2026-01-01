@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet, useMatch } from "@tanstack/react-router";
 import { Button } from "../../components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { ThemeToggle } from "../../components/ui/theme-toggle";
 
 export const Route = createFileRoute("/_authenticated/year/$year")({
   component: YearLayout,
@@ -23,11 +24,14 @@ function YearLayout() {
             </Link>
             <h1 className="text-xl font-bold">{year}</h1>
           </div>
-          <Link to="/share/$year" params={{ year }}>
-            <Button variant="outline" size="sm">
-              Share
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/share/$year" params={{ year }}>
+              <Button variant="outline" size="sm">
+                Share
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 

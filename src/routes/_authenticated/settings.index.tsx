@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useLoaderData } from "@tanstack/react-router";
 import { signOut } from "../../lib/auth-client";
 import { Button } from "../../components/ui/button";
+import { ThemeToggle } from "../../components/ui/theme-toggle";
 import {
   Card,
   CardContent,
@@ -98,6 +99,7 @@ function SettingsPage() {
             </Link>
             <h1 className="text-xl font-bold">Settings</h1>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 

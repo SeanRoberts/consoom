@@ -2,6 +2,7 @@ import { createFileRoute, Link, useLoaderData } from "@tanstack/react-router";
 import { GoalProgress } from "../../components/goal-progress";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { ThemeToggle } from "../../components/ui/theme-toggle";
 import { getYearlyGoals, getMediaForYear, getRecentMedia } from "../../server/queries";
 
 const currentYear = new Date().getFullYear();
@@ -43,6 +44,7 @@ function DashboardPage() {
           <h1 className="text-xl font-bold">Consoom</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">{session.user.name}</span>
+            <ThemeToggle />
             <Link to="/settings">
               <Button variant="outline" size="sm">
                 Settings
